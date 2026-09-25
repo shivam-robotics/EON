@@ -17,7 +17,7 @@
 #define WIFI_PASS          "12345678"
 
 // 🎯 GitHub Releases ya custom cloud storage ka direct configuration update URL link endpoint
-#define DEPLOYED_FIRMWARE_URL "http://YOUR_CLOUD_OR_GITHUB_RAW_URL/firmware.bin"
+#define DEPLOYED_FIRMWARE_URL "https://github.com/shivam-robotics/EON/blob/main/sample_project/build/sample_project.bin"
 
 static const char *TAG = "EON_NATIVE_OTA";
 static EventGroupHandle_t s_wifi_event_group;
