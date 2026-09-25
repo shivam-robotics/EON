@@ -1,4 +1,4 @@
-Command: cmake -G Ninja -B /Users/shivam_6377/Desktop/EON/sample_project/build -DPYTHON_DEPS_CHECKED=1 -DPYTHON=/Users/shivam_6377/.espressif/tools/python/v6.1/venv/bin/python3 -DESP_PLATFORM=1 -DIDF_TARGET=esp32c3 -DCCACHE_ENABLE=False /Users/shivam_6377/Desktop/EON/sample_project
+Command: cmake -G Ninja -B /Users/shivam_6377/Desktop/EON/sample_project/build -DPYTHON_DEPS_CHECKED=1 -DPYTHON=/Users/shivam_6377/.espressif/tools/python/v6.1/venv/bin/python -DESP_PLATFORM=1 -DIDF_TARGET=esp32c3 -DCCACHE_ENABLE=False /Users/shivam_6377/Desktop/EON/sample_project
 NOTE: /Users/shivam_6377/.espressif/v6.1/esp-idf/components/bt/host/nimble/Kconfig.in:1428: BT_NIMBLE_MESH_PROVISIONER: 'default 0' is not a valid bool value (only 'y' and 'n' are allowed). Value is treated as 'n'.
 NOTE: /Users/shivam_6377/.espressif/v6.1/esp-idf/components/fatfs/Kconfig:240: FATFS_PRINT_LLI: 'default 0' is not a valid bool value (only 'y' and 'n' are allowed). Value is treated as 'n'.
 NOTE: /Users/shivam_6377/.espressif/v6.1/esp-idf/components/fatfs/Kconfig:245: FATFS_PRINT_FLOAT: 'default 0' is not a valid bool value (only 'y' and 'n' are allowed). Value is treated as 'n'.
