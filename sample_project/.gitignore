@@ -17,8 +17,6 @@
 *.log
 
 # Build artifacts and directories
-**/build/
-build/
 *.o
 *.a
 *.out
