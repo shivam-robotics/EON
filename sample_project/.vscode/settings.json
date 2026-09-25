@@ -22,7 +22,7 @@
   "idf.openOcdConfigs": [
     "board/esp32c3-builtin.cfg"
   ],
-  "idf.port": "/dev/tty.usbmodem1101",
+  "idf.port": "/dev/tty.usbmodem11101",
   "idf.currentSetup": "/Users/shivam_6377/.espressif/v6.1/esp-idf",
   "idf.customExtraVars": {
     "IDF_TARGET": "esp32c3"
@@ -33,5 +33,5 @@
     "--query-driver=**",
     "--compile-commands-dir=/Users/shivam_6377/Desktop/EON/sample_project/build"
   ],
-  "idf.flashType": "JTAG"
+  "idf.flashType": "UART"
 }
