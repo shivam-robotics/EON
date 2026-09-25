@@ -10,7 +10,7 @@
 #include "nvs_flash.h"
 #include "driver/gpio.h"
 #include "esp_http_client.h"
-#include "esp_https_ota.h"
+#include "esp_ota_ops.h"
 
 #define TOUCH_SENSOR_PIN   GPIO_NUM_5
 #define WIFI_SSID          "Shivam"
@@ -82,29 +82,83 @@ void initialize_network_drivers(void) {
     esp_wifi_set_max_tx_power(56); // MacBook low-power safety config
 }
 
+// 🎯 Raw Low-Level HTTP Flash Writer with Strict SSL Certificate Skip
 void launch_espressif_prebuilt_ota(void) {
-    ESP_LOGI(TAG, "🚀 Invoking Espressif Native Engine Cloud Client. Executing secure download pipeline...");
+    ESP_LOGI(TAG, "🚀 Invoking Low-Level Raw HTTP Client. Launching firmware stream fetch...");
     
-    // 🔒 Using optimized parameters wrapper that directly pulls local global configurations flags
-    esp_http_client_config_t http_config = {
+    esp_http_client_config_t config = {
         .url = DEPLOYED_FIRMWARE_URL,
         .timeout_ms = 15000,
         .keep_alive_enable = true,
-        .skip_cert_common_name_check = true, // Force skips strict domain validation checks over the secure tunnel
+        .skip_cert_common_name_check = true, // Force skips SSL domain validation checks completely!
     };
-
-    esp_https_ota_config_t ota_config = {
-        .http_config = &http_config,
-    };
-
-    esp_err_t ret = esp_https_ota(&ota_config);
-    if (ret == ESP_OK) {
-        ESP_LOGI(TAG, "🟢 Espressif Cloud Verification Verified! Rebooting EON Rover Core...");
-        vTaskDelay(pdMS_TO_TICKS(2000));
-        esp_restart();
-    } else {
-        ESP_LOGE(TAG, "❌ Cloud Engine check dropped. Code status: %s", esp_err_to_name(ret));
+    
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    if (client == NULL) {
+        ESP_LOGE(TAG, "❌ Failed to initialize HTTP network instance configuration.");
+        return;
     }
+    
+    esp_err_t err = esp_http_client_open(client, 0);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "❌ Connection setup dropped. Cannot reach GitHub servers.");
+        esp_http_client_cleanup(client);
+        return;
+    }
+    
+    int content_length = esp_http_client_fetch_headers(client);
+    if (content_length <= 0) {
+        ESP_LOGW(TAG, "⚠️ Received zero payload size from cloud binary registry.");
+        esp_http_client_cleanup(client);
+        return;
+    }
+    
+    const esp_partition_t *update_partition = esp_ota_get_next_update_partition(NULL);
+    if (update_partition == NULL) {
+        ESP_LOGE(TAG, "❌ OTA target destination partitions tables are missing from configuration.");
+        esp_http_client_cleanup(client);
+        return;
+    }
+    
+    esp_ota_handle_t ota_handle = 0;
+    err = esp_ota_begin(update_partition, OTA_SIZE_UNKNOWN, &ota_handle);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "❌ Failed to initiate memory partition block writing parameters.");
+        esp_http_client_cleanup(client);
+        return;
+    }
+    
+    static char ota_write_buffer[1024]; // 1KB stable memory buffer allocation
+    int read_bytes = 0;
+    int total_bytes_flashed = 0;
+    
+    // Continuous sequential block-by-block storage flash routine
+    while ((read_bytes = esp_http_client_read(client, ota_write_buffer, sizeof(ota_write_buffer))) > 0) {
+        err = esp_ota_write(ota_handle, (const void *)ota_write_buffer, read_bytes);
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "❌ Critical data sector write crash inside memory mapping tables.");
+            esp_ota_abort(ota_handle);
+            esp_http_client_cleanup(client);
+            return;
+        }
+        total_bytes_flashed += read_bytes;
+        printf("📥 Flashed Data Stream: %d bytes successfully written...\r", total_bytes_flashed);
+    }
+    
+    err = esp_ota_end(ota_handle);
+    if (err == ESP_OK) {
+        err = esp_ota_set_boot_partition(update_partition);
+        if (err == ESP_OK) {
+            ESP_LOGI(TAG, "🟢 100%% SUCCESS! Total bytes flashed completely: %d", total_bytes_flashed);
+            ESP_LOGI(TAG, "🔄 Rebooting EON Rover Core onto custom updated firmware slots...");
+            vTaskDelay(pdMS_TO_TICKS(1500));
+            esp_restart();
+        }
+    }
+    
+    ESP_LOGE(TAG, "❌ Final signature verification parameters validation mismatch.");
+    esp_ota_abort(ota_handle);
+    esp_http_client_cleanup(client);
 }
 
 void app_main(void) {
@@ -119,7 +173,7 @@ void app_main(void) {
     gpio_set_direction(TOUCH_SENSOR_PIN, GPIO_MODE_INPUT);
 
     ESP_LOGI(TAG, "================================================");
-    ESP_LOGI(TAG, "🤖 EON Cubic Rover - Cloud Native Core Active");
+    ESP_LOGI(TAG, "🤖 EON Cubic Rover - Raw Stream Low-Level Active");
     ESP_LOGI(TAG, "================================================");
 
     initialize_network_drivers();
